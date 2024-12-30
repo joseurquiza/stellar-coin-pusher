@@ -6,8 +6,8 @@ let coins = Array.from({ length: 10 }, () => ({
     x: Math.random() * 750 + 25,
     y: Math.random() * 450 + 50,
     radius: 10,
-    vx: (Math.random() - 0.5) * 2, // Random horizontal speed
-    vy: (Math.random() - 0.5) * 2, // Random vertical speed
+    vx: 0,
+    vy: 0,
 }));
 
 let droppedCoin = null;
@@ -46,14 +46,17 @@ function drawDroppedCoin() {
         // Check for collisions with yellow coins
         coins.forEach((coin, index) => {
             if (checkCollision(droppedCoin, coin)) {
-                // Apply a small velocity to the coin
-                coin.vx = (droppedCoin.x - coin.x) * 0.1;
-                coin.vy = (droppedCoin.y - coin.y) * 0.1;
+                // Apply velocity to the coin
+                coin.vx = (coin.x - droppedCoin.x) * 0.2;
+                coin.vy = (coin.y - droppedCoin.y) * 0.2;
+
+                // Remove the dropped coin after collision
+                droppedCoin = null;
             }
         });
 
         // Remove the dropped coin if it leaves the screen
-        if (droppedCoin.y < 0) {
+        if (droppedCoin && droppedCoin.y < 0) {
             droppedCoin = null;
         }
     }
@@ -63,6 +66,10 @@ function updateCoins() {
     coins.forEach((coin, index) => {
         coin.x += coin.vx;
         coin.y += coin.vy;
+
+        // Slow down coins over time (simulate friction)
+        coin.vx *= 0.98;
+        coin.vy *= 0.98;
 
         // Check if the coin is off-screen
         if (coin.x < 0 || coin.x > canvas.width || coin.y < 0 || coin.y > canvas.height) {
