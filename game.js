@@ -6,9 +6,12 @@ let coins = Array.from({ length: 10 }, () => ({
     x: Math.random() * 750 + 25,
     y: Math.random() * 450 + 50,
     radius: 10,
+    vx: (Math.random() - 0.5) * 2, // Random horizontal speed
+    vy: (Math.random() - 0.5) * 2, // Random vertical speed
 }));
 
 let droppedCoin = null;
+let score = 0;
 
 function drawSlider() {
     ctx.fillStyle = "blue";
@@ -26,7 +29,7 @@ function drawCoins() {
 
 function dropCoin() {
     if (!droppedCoin) {
-        droppedCoin = { x: slider.x + slider.width / 2, y: slider.y - 10, radius: 10 };
+        droppedCoin = { x: slider.x + slider.width / 2, y: slider.y - 10, radius: 10, vx: 0, vy: -5 };
     }
 }
 
@@ -37,11 +40,36 @@ function drawDroppedCoin() {
         ctx.arc(droppedCoin.x, droppedCoin.y, droppedCoin.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        droppedCoin.y -= 5;
+        // Move the dropped coin
+        droppedCoin.y += droppedCoin.vy;
+
+        // Check for collisions with yellow coins
+        coins.forEach((coin, index) => {
+            if (checkCollision(droppedCoin, coin)) {
+                // Apply a small velocity to the coin
+                coin.vx = (droppedCoin.x - coin.x) * 0.1;
+                coin.vy = (droppedCoin.y - coin.y) * 0.1;
+            }
+        });
+
+        // Remove the dropped coin if it leaves the screen
         if (droppedCoin.y < 0) {
             droppedCoin = null;
         }
     }
+}
+
+function updateCoins() {
+    coins.forEach((coin, index) => {
+        coin.x += coin.vx;
+        coin.y += coin.vy;
+
+        // Check if the coin is off-screen
+        if (coin.x < 0 || coin.x > canvas.width || coin.y < 0 || coin.y > canvas.height) {
+            coins.splice(index, 1); // Remove the coin
+            score += 1; // Add to the score
+        }
+    });
 }
 
 function updateSlider() {
@@ -51,14 +79,30 @@ function updateSlider() {
     }
 }
 
+// Collision detection: checks if two circles overlap
+function checkCollision(circle1, circle2) {
+    const dx = circle1.x - circle2.x;
+    const dy = circle1.y - circle2.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance < circle1.radius + circle2.radius;
+}
+
+function drawScore() {
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText(`Score: ${score}`, 10, 30);
+}
+
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawSlider();
     drawCoins();
     drawDroppedCoin();
+    drawScore();
 
     updateSlider();
+    updateCoins();
 
     requestAnimationFrame(gameLoop);
 }
