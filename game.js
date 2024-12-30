@@ -44,14 +44,18 @@ function drawDroppedCoin() {
         droppedCoin.y += droppedCoin.vy;
 
         // Check for collisions with yellow coins
+        let coinsToRemove = [];
         coins.forEach((coin, index) => {
             if (checkCollision(droppedCoin, coin)) {
-                // Apply velocity to the coin
+                // Apply velocity to the yellow coin
                 coin.vx = (coin.x - droppedCoin.x) * 0.2;
                 coin.vy = (coin.y - droppedCoin.y) * 0.2;
 
-                // Remove the dropped coin after collision
+                // Mark the dropped coin for removal
                 droppedCoin = null;
+
+                // Add this coin index to be removed later if needed
+                coinsToRemove.push(index);
             }
         });
 
@@ -59,6 +63,12 @@ function drawDroppedCoin() {
         if (droppedCoin && droppedCoin.y < 0) {
             droppedCoin = null;
         }
+
+        // Remove coins marked for removal after iteration
+        coinsToRemove.forEach((index) => {
+            coins.splice(index, 1);
+            score += 1; // Add to the score
+        });
     }
 }
 
